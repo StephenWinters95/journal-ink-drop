@@ -2,8 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Trash2 } from "lucide-react";
+import { Calendar, Trash2, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 interface JournalEntryProps {
   entry: {
@@ -30,14 +31,25 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ entry, onDelete }) => {
             <Calendar className="w-4 h-4" />
             {format(new Date(entry.date), 'MMMM d, yyyy • h:mm a')}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDelete}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Link to={`/journal/edit/${entry.id}`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         {entry.title && (
           <h3 className="text-lg font-semibold text-gray-800 mt-2">{entry.title}</h3>

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Journal from "./pages/Journal";
 import NewEntry from "./pages/NewEntry";
+import EditEntry from "./pages/EditEntry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

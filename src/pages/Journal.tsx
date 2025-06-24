@@ -41,7 +41,7 @@ const Journal = () => {
           <Link to="/journal/new">
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="w-4 h-4 mr-2" />
-              New Entry
+              Add Entry
             </Button>
           </Link>
         </div>

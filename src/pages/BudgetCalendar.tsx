@@ -1,16 +1,30 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Upload, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
-import { format, isSameDay, startOfDay, addDays } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, DollarSign, TrendingUp, TrendingDown, Edit, Plus, Trash2 } from "lucide-react";
+import { format, isSameDay, startOfDay, addDays, addWeeks, addMonths, addYears, parseISO } from "date-fns";
 import { toast } from "sonner";
+
+interface BudgetTransaction {
+  id: string;
+  title: string;
+  frequency: 'Weekly' | 'Monthly' | 'Annual' | 'One-time';
+  amount: number;
+  type: 'income' | 'expense';
+  startDate: Date;
+}
 
 interface BudgetItem {
   date: Date;
   amount: number;
   description: string;
   type: 'income' | 'expense';
+  transactionId: string;
 }
 
 interface DayBalance {
@@ -22,9 +36,12 @@ interface DayBalance {
 }
 
 const BudgetCalendar = () => {
+  const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
   const [budgetData, setBudgetData] = useState<BudgetItem[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [dailyBalances, setDailyBalances] = useState<Map<string, DayBalance>>(new Map());
+  const [editingTransaction, setEditingTransaction] = useState<BudgetTransaction | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,7 +68,7 @@ const BudgetCalendar = () => {
           return;
         }
 
-        const data: BudgetItem[] = [];
+        const newTransactions: BudgetTransaction[] = [];
         const today = startOfDay(new Date());
         
         for (let i = 0; i < lines.length; i++) {
@@ -60,58 +77,81 @@ const BudgetCalendar = () => {
           
           console.log(`Processing line ${i}:`, line);
           
-          // Split by comma and clean up
-          const parts = line.split(',').map(part => part.trim());
+          // Split by comma and clean up, handling quoted values
+          const parts = line.split(',').map(part => part.trim().replace(/^"|"$/g, ''));
           console.log('Parts:', parts);
           
-          if (parts.length < 2) {
+          if (parts.length < 3) {
             console.warn(`Skipping line ${i}: insufficient data`);
             continue;
           }
           
-          const description = parts[0];
-          const amountStr = parts[1];
+          const title = parts[0];
+          const frequency = parts[1];
+          const amountStr = parts[2];
+          
+          // Skip title rows (empty frequency or amount)
+          if (!frequency || !amountStr || amountStr === '') {
+            console.log(`Skipping title row: ${title}`);
+            continue;
+          }
           
           // Parse amount
           const amount = parseFloat(amountStr);
-          if (isNaN(amount)) {
+          if (isNaN(amount) || amount === 0) {
             console.warn(`Skipping line ${i}: invalid amount "${amountStr}"`);
             continue;
           }
           
-          // Determine type based on description or amount
-          const isIncome = description.toLowerCase().includes('income') || 
-                          description.toLowerCase().includes('salary') || 
-                          description.toLowerCase().includes('wage') ||
-                          amount > 0;
+          // Validate frequency
+          if (!['Weekly', 'Monthly', 'Annual'].includes(frequency)) {
+            console.warn(`Skipping line ${i}: invalid frequency "${frequency}"`);
+            continue;
+          }
+          
+          // Determine type - income typically has positive amounts or income-related keywords
+          const isIncome = title.toLowerCase().includes('income') || 
+                          title.toLowerCase().includes('earnings') || 
+                          title.toLowerCase().includes('salary') ||
+                          title.toLowerCase().includes('wage') ||
+                          title.toLowerCase().includes('benefit') ||
+                          title.toLowerCase().includes('payment') ||
+                          title.toLowerCase().includes('pension') ||
+                          title.toLowerCase().includes('allowance') ||
+                          title.toLowerCase().includes('grant') ||
+                          title.toLowerCase().includes('maintenance') ||
+                          title.toLowerCase().includes('boarders') ||
+                          title.toLowerCase().includes('lodgers');
           
           const type = isIncome ? 'income' : 'expense';
           const finalAmount = Math.abs(amount);
           
           console.log('Adding transaction:', { 
-            date: today, 
+            title, 
+            frequency, 
             amount: finalAmount, 
-            description, 
             type 
           });
           
-          data.push({
-            date: today,
+          newTransactions.push({
+            id: `${Date.now()}-${i}`,
+            title,
+            frequency: frequency as 'Weekly' | 'Monthly' | 'Annual',
             amount: finalAmount,
-            description,
-            type
+            type,
+            startDate: today
           });
         }
         
-        console.log('Total transactions processed:', data.length);
+        console.log('Total transactions processed:', newTransactions.length);
         
-        if (data.length === 0) {
+        if (newTransactions.length === 0) {
           toast.error('No valid transactions found in CSV file');
           return;
         }
         
-        setBudgetData(data);
-        toast.success(`Successfully loaded ${data.length} transactions for today`);
+        setTransactions(newTransactions);
+        toast.success(`Successfully loaded ${newTransactions.length} transactions`);
         
       } catch (error) {
         console.error('Error parsing CSV:', error);
@@ -126,6 +166,51 @@ const BudgetCalendar = () => {
     
     reader.readAsText(file);
   };
+
+  const generateBudgetData = (transactions: BudgetTransaction[]): BudgetItem[] => {
+    const items: BudgetItem[] = [];
+    const endDate = addYears(new Date(), 1);
+
+    transactions.forEach(transaction => {
+      let currentDate = new Date(transaction.startDate);
+      let itemCount = 0;
+      const maxItems = 100; // Prevent infinite loops
+
+      while (currentDate <= endDate && itemCount < maxItems) {
+        items.push({
+          date: new Date(currentDate),
+          amount: transaction.amount,
+          description: transaction.title,
+          type: transaction.type,
+          transactionId: transaction.id
+        });
+
+        // Calculate next occurrence
+        switch (transaction.frequency) {
+          case 'Weekly':
+            currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'Monthly':
+            currentDate = addMonths(currentDate, 1);
+            break;
+          case 'Annual':
+            currentDate = addYears(currentDate, 1);
+            break;
+          case 'One-time':
+            currentDate = addYears(currentDate, 2); // Exit loop
+            break;
+        }
+        itemCount++;
+      }
+    });
+
+    return items;
+  };
+
+  useEffect(() => {
+    const generatedData = generateBudgetData(transactions);
+    setBudgetData(generatedData);
+  }, [transactions]);
 
   useEffect(() => {
     if (budgetData.length === 0) return;
@@ -166,6 +251,25 @@ const BudgetCalendar = () => {
     setDailyBalances(balances);
   }, [budgetData]);
 
+  const handleEditTransaction = (transaction: BudgetTransaction) => {
+    setEditingTransaction(transaction);
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveTransaction = (updatedTransaction: BudgetTransaction) => {
+    setTransactions(prev => 
+      prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
+    );
+    setIsDialogOpen(false);
+    setEditingTransaction(null);
+    toast.success('Transaction updated successfully');
+  };
+
+  const handleDeleteTransaction = (transactionId: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== transactionId));
+    toast.success('Transaction deleted successfully');
+  };
+
   const getSelectedDayData = () => {
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
     return dailyBalances.get(dateKey);
@@ -197,8 +301,8 @@ const BudgetCalendar = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Calendar</CardTitle>
             </CardHeader>
@@ -245,7 +349,7 @@ const BudgetCalendar = () => {
               <CardContent>
                 {selectedDayData ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div className="text-center p-4 bg-green-50 rounded-lg">
                         <TrendingUp className="w-6 h-6 mx-auto mb-2 text-green-600" />
                         <p className="text-sm text-gray-600">Income</p>
@@ -298,7 +402,7 @@ const BudgetCalendar = () => {
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">
-                    {budgetData.length === 0 
+                    {transactions.length === 0 
                       ? 'Upload a CSV file to see budget data'
                       : 'No transactions for this date'
                     }
@@ -307,44 +411,176 @@ const BudgetCalendar = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>CSV Format Examples</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <p className="font-medium mb-2">Simple Format (your format):</p>
-                    <code className="text-xs bg-gray-100 p-2 rounded block">
-                      Daily Income,130<br/>
-                      Daily Outcome,120<br/>
-                      Groceries,50
-                    </code>
+            {transactions.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Transactions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {transactions.map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{transaction.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {transaction.frequency} • ${transaction.amount.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditTransaction(transaction)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteTransaction(transaction.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="font-medium mb-2">With Dates:</p>
-                    <code className="text-xs bg-gray-100 p-2 rounded block">
-                      Date,Amount,Description<br/>
-                      2024-01-15,1000,Salary<br/>
-                      2024-01-16,-50,Groceries
-                    </code>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <p className="font-medium">Notes:</p>
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>Items with "income" in the name are treated as income</li>
-                      <li>Items with "outcome" in the name are treated as expenses</li>
-                      <li>Without dates, all transactions are applied to today</li>
-                      <li>Negative amounts are automatically treated as expenses</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Transaction</DialogTitle>
+            </DialogHeader>
+            {editingTransaction && (
+              <EditTransactionForm
+                transaction={editingTransaction}
+                onSave={handleSaveTransaction}
+                onCancel={() => setIsDialogOpen(false)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
+  );
+};
+
+const EditTransactionForm = ({ 
+  transaction, 
+  onSave, 
+  onCancel 
+}: { 
+  transaction: BudgetTransaction;
+  onSave: (transaction: BudgetTransaction) => void;
+  onCancel: () => void;
+}) => {
+  const [formData, setFormData] = useState({
+    title: transaction.title,
+    frequency: transaction.frequency,
+    amount: transaction.amount.toString(),
+    type: transaction.type,
+    startDate: format(transaction.startDate, 'yyyy-MM-dd')
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const amount = parseFloat(formData.amount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    onSave({
+      ...transaction,
+      title: formData.title,
+      frequency: formData.frequency as 'Weekly' | 'Monthly' | 'Annual' | 'One-time',
+      amount,
+      type: formData.type as 'income' | 'expense',
+      startDate: parseISO(formData.startDate)
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="amount">Amount</Label>
+        <Input
+          id="amount"
+          type="number"
+          step="0.01"
+          value={formData.amount}
+          onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+          required
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="frequency">Frequency</Label>
+        <select
+          id="frequency"
+          value={formData.frequency}
+          onChange={(e) => setFormData(prev => ({ ...prev, frequency: e.target.value }))}
+          className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+        >
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Annual">Annual</option>
+          <option value="One-time">One-time</option>
+        </select>
+      </div>
+      
+      <div>
+        <Label htmlFor="type">Type</Label>
+        <select
+          id="type"
+          value={formData.type}
+          onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+          className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+        >
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+      
+      <div>
+        <Label htmlFor="startDate">Start Date</Label>
+        <Input
+          id="startDate"
+          type="date"
+          value={formData.startDate}
+          onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+          required
+        />
+      </div>
+      
+      <div className="flex gap-2 pt-4">
+        <Button type="submit" className="flex-1">
+          Save Changes
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 };
 

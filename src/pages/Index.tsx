@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { BookOpen, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -17,11 +17,17 @@ const Index = () => {
           </p>
         </div>
         
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
           <Link to="/journal">
             <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3">
               <BookOpen className="w-5 h-5 mr-2" />
               Open Journal
+            </Button>
+          </Link>
+          <Link to="/budget-calendar">
+            <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3">
+              <DollarSign className="w-5 h-5 mr-2" />
+              Budget Calendar
             </Button>
           </Link>
         </div>

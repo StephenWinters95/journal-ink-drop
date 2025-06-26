@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Journal from "./pages/Journal";
 import NewEntry from "./pages/NewEntry";
 import EditEntry from "./pages/EditEntry";
+import BudgetCalendar from "./pages/BudgetCalendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/journal/new" element={<NewEntry />} />
+          <Route path="/journal/edit/:id" element={<EditEntry />} />
+          <Route path="/budget-calendar" element={<BudgetCalendar />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Upload, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { format, isSameDay, startOfDay, addDays } from "date-fns";
+import { toast } from "sonner";
 
 interface BudgetItem {
   date: Date;
@@ -30,50 +31,154 @@ const BudgetCalendar = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('File selected:', file.name, file.size, 'bytes');
+    
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast.error('Please upload a CSV file');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
-      const csv = e.target?.result as string;
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
-      const data: BudgetItem[] = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        if (values.length < 3) continue;
+      try {
+        const csv = e.target?.result as string;
+        console.log('CSV content:', csv.substring(0, 200) + '...');
         
-        const dateIndex = headers.findIndex(h => h.includes('date'));
-        const amountIndex = headers.findIndex(h => h.includes('amount'));
-        const descriptionIndex = headers.findIndex(h => h.includes('description') || h.includes('name'));
-        const typeIndex = headers.findIndex(h => h.includes('type'));
+        const lines = csv.split('\n').filter(line => line.trim() !== '');
+        console.log('Total lines:', lines.length);
         
-        if (dateIndex === -1 || amountIndex === -1) continue;
+        if (lines.length < 2) {
+          toast.error('CSV file must have at least 2 lines (header + data)');
+          return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+        console.log('Headers found:', headers);
         
-        const dateValue = values[dateIndex];
-        const amountValue = parseFloat(values[amountIndex]);
-        const description = values[descriptionIndex] || 'Transaction';
-        const typeValue = values[typeIndex]?.toLowerCase();
+        const data: BudgetItem[] = [];
         
-        let date: Date;
-        try {
-          date = new Date(dateValue);
-          if (isNaN(date.getTime())) continue;
-        } catch {
-          continue;
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          
+          // Handle CSV with quotes and commas
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          console.log(`Processing line ${i}:`, values);
+          
+          if (values.length < 2) {
+            console.warn(`Skipping line ${i}: insufficient columns`);
+            continue;
+          }
+          
+          // Try to find date column (flexible matching)
+          const dateIndex = headers.findIndex(h => 
+            h.includes('date') || h.includes('time') || h.includes('day')
+          );
+          
+          // Try to find amount column (flexible matching)
+          const amountIndex = headers.findIndex(h => 
+            h.includes('amount') || h.includes('value') || h.includes('money') || 
+            h.includes('cost') || h.includes('price') || h.includes('sum')
+          );
+          
+          // Try to find description column (flexible matching)
+          const descriptionIndex = headers.findIndex(h => 
+            h.includes('description') || h.includes('name') || h.includes('title') || 
+            h.includes('item') || h.includes('detail') || h.includes('memo')
+          );
+          
+          // Try to find type column (flexible matching)
+          const typeIndex = headers.findIndex(h => 
+            h.includes('type') || h.includes('category') || h.includes('kind')
+          );
+          
+          console.log('Column indices:', { dateIndex, amountIndex, descriptionIndex, typeIndex });
+          
+          // If we can't find required columns, try using position-based approach
+          let dateValue = '';
+          let amountValue = 0;
+          let description = '';
+          let typeValue = '';
+          
+          if (dateIndex >= 0 && amountIndex >= 0) {
+            dateValue = values[dateIndex];
+            amountValue = parseFloat(values[amountIndex]);
+            description = descriptionIndex >= 0 ? values[descriptionIndex] : 'Transaction';
+            typeValue = typeIndex >= 0 ? values[typeIndex] : '';
+          } else {
+            // Fallback: assume first column is date, second is amount
+            dateValue = values[0];
+            amountValue = parseFloat(values[1]);
+            description = values.length > 2 ? values[2] : 'Transaction';
+            typeValue = values.length > 3 ? values[3] : '';
+          }
+          
+          console.log('Parsed values:', { dateValue, amountValue, description, typeValue });
+          
+          if (isNaN(amountValue)) {
+            console.warn(`Skipping line ${i}: invalid amount`);
+            continue;
+          }
+          
+          let date: Date;
+          try {
+            // Try different date formats
+            if (dateValue.includes('/')) {
+              // MM/DD/YYYY or DD/MM/YYYY
+              const parts = dateValue.split('/');
+              if (parts.length === 3) {
+                date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+              } else {
+                date = new Date(dateValue);
+              }
+            } else if (dateValue.includes('-')) {
+              // YYYY-MM-DD
+              date = new Date(dateValue);
+            } else {
+              date = new Date(dateValue);
+            }
+            
+            if (isNaN(date.getTime())) {
+              console.warn(`Skipping line ${i}: invalid date`);
+              continue;
+            }
+          } catch (error) {
+            console.warn(`Skipping line ${i}: date parsing error`, error);
+            continue;
+          }
+          
+          const type = typeValue.toLowerCase() === 'expense' || typeValue.toLowerCase() === 'out' || amountValue < 0 ? 'expense' : 'income';
+          const amount = Math.abs(amountValue);
+          
+          console.log('Adding transaction:', { date, amount, description, type });
+          
+          data.push({
+            date: startOfDay(date),
+            amount,
+            description,
+            type
+          });
         }
         
-        const type = typeValue === 'expense' || amountValue < 0 ? 'expense' : 'income';
-        const amount = Math.abs(amountValue);
+        console.log('Total transactions processed:', data.length);
         
-        data.push({
-          date: startOfDay(date),
-          amount,
-          description,
-          type
-        });
+        if (data.length === 0) {
+          toast.error('No valid transactions found in CSV file');
+          return;
+        }
+        
+        setBudgetData(data);
+        toast.success(`Successfully loaded ${data.length} transactions`);
+        
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        toast.error('Error parsing CSV file');
       }
-      
-      setBudgetData(data);
+    };
+    
+    reader.onerror = () => {
+      console.error('Error reading file');
+      toast.error('Error reading file');
     };
     
     reader.readAsText(file);
@@ -259,24 +364,39 @@ const BudgetCalendar = () => {
               </CardContent>
             </Card>
 
-            {budgetData.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>CSV Format Help</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Your CSV should include columns for:
-                  </p>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• <strong>Date</strong> (YYYY-MM-DD format)</li>
-                    <li>• <strong>Amount</strong> (positive for income, negative for expenses)</li>
-                    <li>• <strong>Description/Name</strong> (transaction description)</li>
-                    <li>• <strong>Type</strong> (optional: "income" or "expense")</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle>CSV Format Examples</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium mb-2">Basic Format:</p>
+                    <code className="text-xs bg-gray-100 p-2 rounded block">
+                      Date,Amount,Description<br/>
+                      2024-01-15,1000,Salary<br/>
+                      2024-01-16,-50,Groceries
+                    </code>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-2">With Type Column:</p>
+                    <code className="text-xs bg-gray-100 p-2 rounded block">
+                      Date,Amount,Description,Type<br/>
+                      2024-01-15,1000,Salary,income<br/>
+                      2024-01-16,50,Groceries,expense
+                    </code>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p className="font-medium">Supported date formats:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>YYYY-MM-DD (2024-01-15)</li>
+                      <li>MM/DD/YYYY (01/15/2024)</li>
+                      <li>DD/MM/YYYY (15/01/2024)</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

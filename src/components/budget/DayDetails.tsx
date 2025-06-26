@@ -55,21 +55,47 @@ const DayDetails = ({ selectedDate, selectedDayData, transactionsCount }: DayDet
 
             {selectedDayData.transactions.length > 0 && (
               <div>
-                <h4 className="font-semibold mb-2">Transactions</h4>
-                <div className="space-y-2">
-                  {selectedDayData.transactions.map((transaction, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                    >
-                      <span className="text-sm">{transaction.description}</span>
-                      <span className={`font-medium ${
-                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
+                <h4 className="font-semibold mb-3">Transactions</h4>
+                <div className="space-y-3">
+                  {/* Income transactions */}
+                  {selectedDayData.transactions
+                    .filter(transaction => transaction.type === 'income')
+                    .map((transaction, index) => (
+                      <div
+                        key={`income-${index}`}
+                        className="flex justify-between items-center p-3 bg-green-50 border-l-4 border-green-400 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            {transaction.description}
+                          </span>
+                        </div>
+                        <span className="font-bold text-green-600">
+                          +${transaction.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  
+                  {/* Expense transactions */}
+                  {selectedDayData.transactions
+                    .filter(transaction => transaction.type === 'expense')
+                    .map((transaction, index) => (
+                      <div
+                        key={`expense-${index}`}
+                        className="flex justify-between items-center p-3 bg-red-50 border-l-4 border-red-400 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="w-4 h-4 text-red-600" />
+                          <span className="text-sm font-medium text-red-800">
+                            {transaction.description}
+                          </span>
+                        </div>
+                        <span className="font-bold text-red-600">
+                          -${transaction.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </div>
             )}

@@ -51,6 +51,25 @@ const BudgetCalendar = () => {
 
   const selectedDayData = getSelectedDayData();
 
+  // Custom day content to show balance above each day
+  const DayContent = ({ date }: { date: Date }) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    const dayData = dailyBalances.get(dateKey);
+    
+    return (
+      <div className="flex flex-col items-center">
+        {dayData && (
+          <div className={`text-xs font-bold mb-1 ${
+            dayData.balance >= 0 ? 'text-green-600' : 'text-red-600'
+          }`}>
+            ${Math.abs(dayData.balance).toFixed(0)}
+          </div>
+        )}
+        <div>{date.getDate()}</div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -74,6 +93,9 @@ const BudgetCalendar = () => {
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 className="w-full"
+                components={{
+                  DayContent: DayContent
+                }}
                 modifiers={{
                   hasData: (date) => {
                     const dateKey = format(date, 'yyyy-MM-dd');

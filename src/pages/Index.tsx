@@ -24,10 +24,10 @@ const Index = () => {
               Open Journal
             </Button>
           </Link>
-          <Link to="/budget-calendar">
+          <Link to="/budget-dashboard">
             <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3">
               <DollarSign className="w-5 h-5 mr-2" />
-              Budget Calendar
+              Budget Dashboard
             </Button>
           </Link>
         </div>

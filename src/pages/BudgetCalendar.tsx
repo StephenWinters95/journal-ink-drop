@@ -1,29 +1,32 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DollarSign } from "lucide-react";
+import { DollarSign, LayoutDashboard } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useBudgetData } from "@/hooks/useBudgetData";
-import CSVUpload from "@/components/budget/CSVUpload";
+import { useBudget } from '@/contexts/BudgetContext';
 import DayDetails from "@/components/budget/DayDetails";
 import TransactionList from "@/components/budget/TransactionList";
 import EditTransactionForm from "@/components/budget/EditTransactionForm";
 import type { BudgetTransaction } from "@/types/budget";
 
 const BudgetCalendar = () => {
-  const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const navigate = useNavigate();
+  const { 
+    transactions, 
+    selectedDate, 
+    setSelectedDate,
+    updateTransaction,
+    deleteTransaction,
+    budgetData: { dailyBalances }
+  } = useBudget();
+  
   const [editingTransaction, setEditingTransaction] = useState<BudgetTransaction | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const { dailyBalances } = useBudgetData(transactions);
-
-  const handleTransactionsLoaded = (newTransactions: BudgetTransaction[]) => {
-    setTransactions(newTransactions);
-  };
 
   const handleEditTransaction = (transaction: BudgetTransaction) => {
     setEditingTransaction(transaction);
@@ -31,17 +34,9 @@ const BudgetCalendar = () => {
   };
 
   const handleSaveTransaction = (updatedTransaction: BudgetTransaction) => {
-    setTransactions(prev => 
-      prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
-    );
+    updateTransaction(updatedTransaction);
     setIsDialogOpen(false);
     setEditingTransaction(null);
-    toast.success('Transaction updated successfully');
-  };
-
-  const handleDeleteTransaction = (transactionId: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== transactionId));
-    toast.success('Transaction deleted successfully');
   };
 
   const getSelectedDayData = () => {
@@ -76,10 +71,17 @@ const BudgetCalendar = () => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <DollarSign className="w-8 h-8 text-green-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Budget Calendar</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Calendar View</h1>
           </div>
           
-          <CSVUpload onTransactionsLoaded={handleTransactionsLoaded} />
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => navigate('/budget-dashboard')}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard View
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -132,7 +134,7 @@ const BudgetCalendar = () => {
             <TransactionList
               transactions={transactions}
               onEditTransaction={handleEditTransaction}
-              onDeleteTransaction={handleDeleteTransaction}
+              onDeleteTransaction={deleteTransaction}
             />
           </div>
         </div>

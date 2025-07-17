@@ -6,6 +6,8 @@ export interface BudgetTransaction {
   amount: number;
   type: 'income' | 'expense';
   startDate: Date;
+  category?: string;
+  nextDueDate?: Date;
 }
 
 export interface BudgetItem {

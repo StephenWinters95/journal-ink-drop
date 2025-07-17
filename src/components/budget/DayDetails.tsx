@@ -28,14 +28,14 @@ const DayDetails = ({ selectedDate, selectedDayData, transactionsCount }: DayDet
                 <TrendingUp className="w-6 h-6 mx-auto mb-2 text-green-600" />
                 <p className="text-sm text-gray-600">Income</p>
                 <p className="text-lg font-bold text-green-600">
-                  ${selectedDayData.dailyIncome.toFixed(2)}
+                  €{selectedDayData.dailyIncome.toFixed(2)}
                 </p>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
                 <TrendingDown className="w-6 h-6 mx-auto mb-2 text-red-600" />
                 <p className="text-sm text-gray-600">Expenses</p>
                 <p className="text-lg font-bold text-red-600">
-                  ${selectedDayData.dailyExpenses.toFixed(2)}
+                  €{selectedDayData.dailyExpenses.toFixed(2)}
                 </p>
               </div>
               <div className={`text-center p-4 rounded-lg ${
@@ -48,7 +48,7 @@ const DayDetails = ({ selectedDate, selectedDayData, transactionsCount }: DayDet
                 <p className={`text-lg font-bold ${
                   selectedDayData.balance >= 0 ? 'text-blue-600' : 'text-yellow-600'
                 }`}>
-                  ${selectedDayData.balance.toFixed(2)}
+                  €{selectedDayData.balance.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -72,7 +72,7 @@ const DayDetails = ({ selectedDate, selectedDayData, transactionsCount }: DayDet
                           </span>
                         </div>
                         <span className="font-bold text-green-600">
-                          +${transaction.amount.toFixed(2)}
+                          +€{transaction.amount.toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -92,7 +92,7 @@ const DayDetails = ({ selectedDate, selectedDayData, transactionsCount }: DayDet
                           </span>
                         </div>
                         <span className="font-bold text-red-600">
-                          -${transaction.amount.toFixed(2)}
+                          -€{transaction.amount.toFixed(2)}
                         </span>
                       </div>
                     ))}

@@ -86,20 +86,20 @@ const FinancialSummary = () => {
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <TrendingUp className="w-6 h-6 mx-auto mb-2 text-green-600" />
             <p className="text-sm text-gray-600">Avg Weekly Income</p>
-            <p className="text-lg font-bold text-green-600">${weeklyIncome.toFixed(2)}</p>
+            <p className="text-lg font-bold text-green-600">€{weeklyIncome.toFixed(2)}</p>
           </div>
           
           <div className="text-center p-4 bg-red-50 rounded-lg">
             <TrendingDown className="w-6 h-6 mx-auto mb-2 text-red-600" />
             <p className="text-sm text-gray-600">Avg Weekly Expenses</p>
-            <p className="text-lg font-bold text-red-600">${weeklyExpenses.toFixed(2)}</p>
+            <p className="text-lg font-bold text-red-600">€{weeklyExpenses.toFixed(2)}</p>
           </div>
           
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <DollarSign className="w-6 h-6 mx-auto mb-2 text-blue-600" />
             <p className="text-sm text-gray-600">Weekly Net</p>
             <p className={`text-lg font-bold ${weeklyNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${weeklyNet.toFixed(2)}
+              €{weeklyNet.toFixed(2)}
             </p>
           </div>
           
@@ -107,7 +107,7 @@ const FinancialSummary = () => {
             <Wallet className="w-6 h-6 mx-auto mb-2 text-purple-600" />
             <p className="text-sm text-gray-600">Monthly Savings</p>
             <p className={`text-lg font-bold ${monthlySavings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ${monthlySavings.toFixed(2)}
+              €{monthlySavings.toFixed(2)}
             </p>
           </div>
         </div>

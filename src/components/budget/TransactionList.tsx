@@ -31,7 +31,7 @@ const TransactionList = ({ transactions, onEditTransaction, onDeleteTransaction 
               <div className="flex-1">
                 <p className="text-sm font-medium">{transaction.title}</p>
                 <p className="text-xs text-gray-500">
-                  {transaction.frequency} • ${transaction.amount.toFixed(2)}
+                  {transaction.frequency} • €{transaction.amount.toFixed(2)}
                 </p>
               </div>
               <div className="flex gap-1">

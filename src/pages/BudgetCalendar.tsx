@@ -57,7 +57,7 @@ const BudgetCalendar = () => {
           <div className={`text-xs font-bold mb-1 ${
             dayData.balance >= 0 ? 'text-green-600' : 'text-red-600'
           }`}>
-            ${Math.abs(dayData.balance).toFixed(0)}
+            €{Math.abs(dayData.balance).toFixed(0)}
           </div>
         )}
         <div>{date.getDate()}</div>

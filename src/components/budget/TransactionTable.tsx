@@ -125,11 +125,6 @@ const TransactionTable = () => {
                     sortDirection === 'asc' ? <ArrowUp className="inline w-3 h-3" /> : <ArrowDown className="inline w-3 h-3" />
                   )}
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('startDate')}>
-                  Schedule {sortField === 'startDate' && (
-                    sortDirection === 'asc' ? <ArrowUp className="inline w-3 h-3" /> : <ArrowDown className="inline w-3 h-3" />
-                  )}
-                </TableHead>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('nextDueDate')}>
                   Next Due {sortField === 'nextDueDate' && (
                     sortDirection === 'asc' ? <ArrowUp className="inline w-3 h-3" /> : <ArrowDown className="inline w-3 h-3" />
@@ -146,27 +141,43 @@ const TransactionTable = () => {
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-10 text-gray-500">
                     No transactions found. Add a transaction or upload a CSV file.
                   </TableCell>
                 </TableRow>
               ) : (
                 sortedTransactions.map((transaction) => (
-                  <TableRow 
-                    key={transaction.id}
-                    className="cursor-pointer hover:bg-muted/30"
-                    onClick={() => handleEditTransaction(transaction)}
-                  >
-                    <TableCell>{transaction.title}</TableCell>
-                    <TableCell>
+                  <TableRow key={transaction.id} className="hover:bg-muted/30">
+                    <TableCell 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
+                      {transaction.title}
+                    </TableCell>
+                    <TableCell 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
                       <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
                         {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
                       </span>
                     </TableCell>
-                    <TableCell>{transaction.frequency}</TableCell>
-                    <TableCell>{format(new Date(transaction.startDate), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'}</TableCell>
-                    <TableCell className={transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                    <TableCell 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
+                      {transaction.frequency}
+                    </TableCell>
+                    <TableCell 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
+                      {transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'}
+                    </TableCell>
+                    <TableCell 
+                      className={`cursor-pointer hover:bg-muted/50 ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
                       €{transaction.amount.toFixed(2)}
                     </TableCell>
                     <TableCell>

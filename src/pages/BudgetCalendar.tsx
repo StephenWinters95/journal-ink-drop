@@ -84,8 +84,8 @@ const BudgetCalendar = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle className="text-xl">Budget Calendar</CardTitle>
             </CardHeader>
@@ -94,7 +94,7 @@ const BudgetCalendar = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="w-full scale-110 origin-top mx-auto"
+                className="w-full scale-125 origin-top mx-auto"
                 components={{
                   DayContent: DayContent
                 }}
@@ -124,7 +124,7 @@ const BudgetCalendar = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <DayDetails 
               selectedDate={selectedDate}
               selectedDayData={selectedDayData}

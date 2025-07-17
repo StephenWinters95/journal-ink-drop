@@ -248,7 +248,7 @@ const TransactionTable = () => {
                 id="type"
                 value={newTransaction.type}
                 onChange={(e) => setNewTransaction(prev => ({ ...prev, type: e.target.value as 'income' | 'expense' }))}
-                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
               >
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
@@ -257,17 +257,17 @@ const TransactionTable = () => {
             
             <div>
               <Label htmlFor="frequency">Frequency</Label>
-              <select
-                id="frequency"
-                value={newTransaction.frequency}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, frequency: e.target.value }))}
-                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
-              >
-                <option value="Weekly">Weekly</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Annual">Annual</option>
-                <option value="One-time">One-time</option>
-              </select>
+                <select
+                  id="frequency"
+                  value={newTransaction.frequency}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, frequency: e.target.value }))}
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
+                >
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Annual">Annual</option>
+                  <option value="One-time">One-time</option>
+                </select>
             </div>
             
             <div>
@@ -310,7 +310,7 @@ const TransactionTable = () => {
                 id="category"
                 value={newTransaction.category}
                 onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
               >
                 <option value="">-- Select Category --</option>
                 {categories.map(category => (
@@ -355,7 +355,7 @@ const TransactionTable = () => {
                   id="edit-type"
                   value={editingTransaction.type}
                   onChange={(e) => setEditingTransaction(prev => ({ ...prev!, type: e.target.value as 'income' | 'expense' }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
                 >
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
@@ -368,7 +368,7 @@ const TransactionTable = () => {
                   id="edit-frequency"
                   value={editingTransaction.frequency}
                   onChange={(e) => setEditingTransaction(prev => ({ ...prev!, frequency: e.target.value as any }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
                 >
                   <option value="Weekly">Weekly</option>
                   <option value="Monthly">Monthly</option>
@@ -416,7 +416,7 @@ const TransactionTable = () => {
                   id="edit-category"
                   value={editingTransaction.category || ''}
                   onChange={(e) => setEditingTransaction(prev => ({ ...prev!, category: e.target.value || undefined }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background"
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
                 >
                   <option value="">-- Select Category --</option>
                   {categories.map(category => (

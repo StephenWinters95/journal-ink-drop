@@ -17,12 +17,9 @@ interface BudgetContextType {
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
-  console.log('BudgetProvider rendering');
   const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const budgetData = useBudgetData(transactions);
-  
-  console.log('BudgetProvider state:', { transactions: transactions.length, selectedDate, budgetData });
 
   // Load transactions from localStorage on mount
   React.useEffect(() => {
@@ -91,11 +88,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
 }
 
 export function useBudget() {
-  console.log('useBudget hook called');
   const context = useContext(BudgetContext);
-  console.log('Context value:', context);
   if (context === undefined) {
-    console.error('BudgetContext is undefined - provider not found');
     throw new Error('useBudget must be used within a BudgetProvider');
   }
   return context;

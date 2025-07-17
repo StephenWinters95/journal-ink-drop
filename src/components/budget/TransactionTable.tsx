@@ -149,13 +149,13 @@ const TransactionTable = () => {
                 sortedTransactions.map((transaction) => (
                   <TableRow key={transaction.id} className="hover:bg-muted/30">
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
                       onClick={() => handleEditTransaction(transaction)}
                     >
                       {transaction.title}
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
                       onClick={() => handleEditTransaction(transaction)}
                     >
                       <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
@@ -163,19 +163,19 @@ const TransactionTable = () => {
                       </span>
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
                       onClick={() => handleEditTransaction(transaction)}
                     >
                       {transaction.frequency}
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
                       onClick={() => handleEditTransaction(transaction)}
                     >
                       {transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'}
                     </TableCell>
                     <TableCell 
-                      className={`cursor-pointer hover:bg-muted/50 ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
+                      className={`cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
                       onClick={() => handleEditTransaction(transaction)}
                     >
                       €{transaction.amount.toFixed(2)}

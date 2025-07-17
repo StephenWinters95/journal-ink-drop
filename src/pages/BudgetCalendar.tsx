@@ -94,7 +94,7 @@ const BudgetCalendar = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="w-full scale-125 origin-top mx-auto"
+                className="w-full scale-110 origin-top mx-auto"
                 components={{
                   DayContent: DayContent
                 }}

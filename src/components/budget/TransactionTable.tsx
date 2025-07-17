@@ -9,25 +9,24 @@ import { Plus, Trash2, ArrowDown, ArrowUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useBudget } from '@/contexts/BudgetContext';
 import type { BudgetTransaction } from '@/types/budget';
+import InlineEditCell from './InlineEditCell';
 
 const TransactionTable = () => {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useBudget();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<BudgetTransaction | null>(null);
+  const [editingCell, setEditingCell] = useState<{transactionId: string, field: string} | null>(null);
   const [newTransaction, setNewTransaction] = useState({
     title: '',
     frequency: 'Monthly',
     amount: '',
     type: 'expense',
-        startDate: format(new Date(), 'yyyy-MM-dd'),
-        nextDueDate: format(new Date(), 'yyyy-MM-dd')
+    startDate: format(new Date(), 'yyyy-MM-dd'),
+    nextDueDate: format(new Date(), 'yyyy-MM-dd')
   });
   
   const [sortField, setSortField] = useState<keyof BudgetTransaction>('title');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
   
   const handleAddTransaction = () => {
     try {
@@ -65,18 +64,19 @@ const TransactionTable = () => {
     }
   };
   
-  const handleEditTransaction = (transaction: BudgetTransaction) => {
-    setEditingTransaction(transaction);
-    setIsEditDialogOpen(true);
+  const handleCellEdit = (transactionId: string, field: string, value: any) => {
+    const transaction = transactions.find(t => t.id === transactionId);
+    if (transaction) {
+      const updatedTransaction = { ...transaction, [field]: value };
+      updateTransaction(updatedTransaction);
+    }
+    setEditingCell(null);
   };
-  
-  const handleUpdateTransaction = () => {
-    if (!editingTransaction) return;
-    updateTransaction(editingTransaction);
-    setIsEditDialogOpen(false);
-    setEditingTransaction(null);
+
+  const handleCellClick = (transactionId: string, field: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCell({ transactionId, field });
   };
-  
   
   const handleSort = (field: keyof BudgetTransaction) => {
     if (sortField === field) {
@@ -150,35 +150,90 @@ const TransactionTable = () => {
                   <TableRow key={transaction.id} className="hover:bg-muted/30">
                     <TableCell 
                       className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
-                      onClick={() => handleEditTransaction(transaction)}
+                      onClick={(e) => handleCellClick(transaction.id, 'title', e)}
                     >
-                      {transaction.title}
+                      {editingCell?.transactionId === transaction.id && editingCell?.field === 'title' ? (
+                        <InlineEditCell
+                          value={transaction.title}
+                          onSave={(value) => handleCellEdit(transaction.id, 'title', value)}
+                          onCancel={() => setEditingCell(null)}
+                          type="text"
+                        />
+                      ) : (
+                        transaction.title
+                      )}
                     </TableCell>
                     <TableCell 
                       className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
-                      onClick={() => handleEditTransaction(transaction)}
+                      onClick={(e) => handleCellClick(transaction.id, 'type', e)}
                     >
-                      <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
-                        {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                      </span>
+                      {editingCell?.transactionId === transaction.id && editingCell?.field === 'type' ? (
+                        <InlineEditCell
+                          value={transaction.type}
+                          onSave={(value) => handleCellEdit(transaction.id, 'type', value)}
+                          onCancel={() => setEditingCell(null)}
+                          type="select"
+                          options={[
+                            { value: 'income', label: 'Income' },
+                            { value: 'expense', label: 'Expense' }
+                          ]}
+                        />
+                      ) : (
+                        <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
+                          {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell 
                       className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
-                      onClick={() => handleEditTransaction(transaction)}
+                      onClick={(e) => handleCellClick(transaction.id, 'frequency', e)}
                     >
-                      {transaction.frequency}
+                      {editingCell?.transactionId === transaction.id && editingCell?.field === 'frequency' ? (
+                        <InlineEditCell
+                          value={transaction.frequency}
+                          onSave={(value) => handleCellEdit(transaction.id, 'frequency', value)}
+                          onCancel={() => setEditingCell(null)}
+                          type="select"
+                          options={[
+                            { value: 'Weekly', label: 'Weekly' },
+                            { value: 'Monthly', label: 'Monthly' },
+                            { value: 'Annual', label: 'Annual' },
+                            { value: 'One-time', label: 'One-time' }
+                          ]}
+                        />
+                      ) : (
+                        transaction.frequency
+                      )}
                     </TableCell>
                     <TableCell 
                       className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
-                      onClick={() => handleEditTransaction(transaction)}
+                      onClick={(e) => handleCellClick(transaction.id, 'nextDueDate', e)}
                     >
-                      {transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'}
+                      {editingCell?.transactionId === transaction.id && editingCell?.field === 'nextDueDate' ? (
+                        <InlineEditCell
+                          value={transaction.nextDueDate || new Date()}
+                          onSave={(value) => handleCellEdit(transaction.id, 'nextDueDate', value)}
+                          onCancel={() => setEditingCell(null)}
+                          type="date"
+                        />
+                      ) : (
+                        transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'
+                      )}
                     </TableCell>
                     <TableCell 
                       className={`cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
-                      onClick={() => handleEditTransaction(transaction)}
+                      onClick={(e) => handleCellClick(transaction.id, 'amount', e)}
                     >
-                      €{transaction.amount.toFixed(2)}
+                      {editingCell?.transactionId === transaction.id && editingCell?.field === 'amount' ? (
+                        <InlineEditCell
+                          value={transaction.amount}
+                          onSave={(value) => handleCellEdit(transaction.id, 'amount', value)}
+                          onCancel={() => setEditingCell(null)}
+                          type="number"
+                        />
+                      ) : (
+                        `€${transaction.amount.toFixed(2)}`
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -300,98 +355,6 @@ const TransactionTable = () => {
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Transaction Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Transaction</DialogTitle>
-          </DialogHeader>
-          {editingTransaction && (
-            <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="edit-title">Description</Label>
-                <Input 
-                  id="edit-title" 
-                  value={editingTransaction.title} 
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, title: e.target.value }))} 
-                  required 
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-type">Type</Label>
-                <select
-                  id="edit-type"
-                  value={editingTransaction.type}
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, type: e.target.value as 'income' | 'expense' }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
-                >
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-frequency">Frequency</Label>
-                <select
-                  id="edit-frequency"
-                  value={editingTransaction.frequency}
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, frequency: e.target.value as any }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
-                >
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Annual">Annual</option>
-                  <option value="One-time">One-time</option>
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-amount">Amount</Label>
-                <Input 
-                  id="edit-amount" 
-                  type="number" 
-                  step="0.01" 
-                  value={editingTransaction.amount} 
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, amount: parseFloat(e.target.value) || prev!.amount }))} 
-                  required 
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-startDate">Start Date</Label>
-                <Input 
-                  id="edit-startDate" 
-                  type="date" 
-                  value={format(new Date(editingTransaction.startDate), 'yyyy-MM-dd')} 
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, startDate: parseISO(e.target.value) }))} 
-                  required 
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-nextDueDate">Next Due Date</Label>
-                <Input 
-                  id="edit-nextDueDate" 
-                  type="date" 
-                  value={editingTransaction.nextDueDate ? format(new Date(editingTransaction.nextDueDate), 'yyyy-MM-dd') : ''} 
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, nextDueDate: e.target.value ? parseISO(e.target.value) : undefined }))} 
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleUpdateTransaction}>
-                  Update Transaction
-                </Button>
-              </div>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </Card>

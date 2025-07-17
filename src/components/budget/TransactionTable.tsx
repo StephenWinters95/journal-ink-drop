@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Edit2, Plus, Trash2, ArrowDown, ArrowUp } from "lucide-react";
+import { Plus, Trash2, ArrowDown, ArrowUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useBudget } from '@/contexts/BudgetContext';
 import type { BudgetTransaction } from '@/types/budget';
@@ -21,26 +21,13 @@ const TransactionTable = () => {
     frequency: 'Monthly',
     amount: '',
     type: 'expense',
-    startDate: format(new Date(), 'yyyy-MM-dd'),
-    category: '',
-    nextDueDate: format(new Date(), 'yyyy-MM-dd')
+        startDate: format(new Date(), 'yyyy-MM-dd'),
+        nextDueDate: format(new Date(), 'yyyy-MM-dd')
   });
   
   const [sortField, setSortField] = useState<keyof BudgetTransaction>('title');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Category management
-  const [categories, setCategories] = useState<string[]>([]);
-  const [newCategory, setNewCategory] = useState('');
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  
-  // Get unique categories from transactions
-  React.useEffect(() => {
-    const uniqueCategories = Array.from(
-      new Set(transactions.map(t => t.category).filter(Boolean) as string[])
-    );
-    setCategories(uniqueCategories);
-  }, [transactions]);
   
   const handleAddTransaction = () => {
     try {
@@ -56,7 +43,6 @@ const TransactionTable = () => {
         amount: amount,
         type: newTransaction.type as 'income' | 'expense',
         startDate: parseISO(newTransaction.startDate),
-        category: newTransaction.category || undefined,
         nextDueDate: parseISO(newTransaction.nextDueDate)
       };
       
@@ -69,7 +55,6 @@ const TransactionTable = () => {
         amount: '',
         type: 'expense',
         startDate: format(new Date(), 'yyyy-MM-dd'),
-        category: '',
         nextDueDate: format(new Date(), 'yyyy-MM-dd')
       });
       
@@ -92,16 +77,6 @@ const TransactionTable = () => {
     setEditingTransaction(null);
   };
   
-  const handleAddCategory = () => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories([...categories, newCategory.trim()]);
-      setNewCategory('');
-    }
-  };
-  
-  const handleDeleteCategory = (category: string) => {
-    setCategories(categories.filter(c => c !== category));
-  };
   
   const handleSort = (field: keyof BudgetTransaction) => {
     if (sortField === field) {
@@ -128,23 +103,12 @@ const TransactionTable = () => {
   return (
     <Card className="col-span-1 lg:col-span-3">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>Budget Data</CardTitle>
-          <div className="flex gap-2">
-            <Button onClick={() => setIsCategoryDialogOpen(true)}>
-              Manage Categories
-            </Button>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Transaction
-            </Button>
-          </div>
-        </div>
+        <CardTitle>Budget Data</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="max-h-96 overflow-auto border rounded-lg">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('title')}>
                   Description {sortField === 'title' && (
@@ -176,24 +140,23 @@ const TransactionTable = () => {
                     sortDirection === 'asc' ? <ArrowUp className="inline w-3 h-3" /> : <ArrowDown className="inline w-3 h-3" />
                   )}
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
-                  Category {sortField === 'category' && (
-                    sortDirection === 'asc' ? <ArrowUp className="inline w-3 h-3" /> : <ArrowDown className="inline w-3 h-3" />
-                  )}
-                </TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-10 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                     No transactions found. Add a transaction or upload a CSV file.
                   </TableCell>
                 </TableRow>
               ) : (
                 sortedTransactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
+                  <TableRow 
+                    key={transaction.id}
+                    className="cursor-pointer hover:bg-muted/30"
+                    onClick={() => handleEditTransaction(transaction)}
+                  >
                     <TableCell>{transaction.title}</TableCell>
                     <TableCell>
                       <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
@@ -204,24 +167,37 @@ const TransactionTable = () => {
                     <TableCell>{format(new Date(transaction.startDate), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{transaction.nextDueDate ? format(new Date(transaction.nextDueDate), 'MMM d, yyyy') : '-'}</TableCell>
                     <TableCell className={transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                      ${transaction.amount.toFixed(2)}
+                      €{transaction.amount.toFixed(2)}
                     </TableCell>
-                    <TableCell>{transaction.category || '-'}</TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="outline" onClick={() => handleEditTransaction(transaction)}>
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => deleteTransaction(transaction.id)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTransaction(transaction.id);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
+        </div>
+        
+        {/* Add Transaction Banner */}
+        <div className="mt-6">
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            className="w-full h-12 text-lg"
+            size="lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Transaction
+          </Button>
         </div>
       </CardContent>
       
@@ -302,21 +278,6 @@ const TransactionTable = () => {
                 onChange={(e) => setNewTransaction(prev => ({ ...prev, nextDueDate: e.target.value }))} 
                 required 
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <select
-                id="category"
-                value={newTransaction.category}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
-              >
-                <option value="">-- Select Category --</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
             </div>
             
             <div className="flex justify-end gap-2 pt-4">
@@ -410,21 +371,6 @@ const TransactionTable = () => {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="edit-category">Category</Label>
-                <select
-                  id="edit-category"
-                  value={editingTransaction.category || ''}
-                  onChange={(e) => setEditingTransaction(prev => ({ ...prev!, category: e.target.value || undefined }))}
-                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground z-10"
-                >
-                  <option value="">-- Select Category --</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-              
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancel
@@ -435,51 +381,6 @@ const TransactionTable = () => {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Manage Categories Dialog */}
-      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Categories</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex gap-2">
-              <Input 
-                placeholder="New category" 
-                value={newCategory} 
-                onChange={(e) => setNewCategory(e.target.value)} 
-              />
-              <Button onClick={handleAddCategory}>Add</Button>
-            </div>
-            
-            {categories.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Current Categories</Label>
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {categories.map(category => (
-                    <div key={category} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <span>{category}</span>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteCategory(category)}>
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-4">
-                No categories defined. Add a category to get started.
-              </p>
-            )}
-            
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
-                Close
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
     </Card>

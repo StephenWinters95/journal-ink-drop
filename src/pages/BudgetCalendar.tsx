@@ -87,14 +87,14 @@ const BudgetCalendar = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Calendar</CardTitle>
+              <CardTitle className="text-xl">Budget Calendar</CardTitle>
             </CardHeader>
             <CardContent>
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                className="w-full"
+                className="w-full scale-110 origin-top mx-auto"
                 components={{
                   DayContent: DayContent
                 }}

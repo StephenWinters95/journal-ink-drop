@@ -27,11 +27,11 @@ const BudgetDashboard = () => {
           
           <div className="flex items-center gap-4">
             <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 text-lg font-semibold"
               onClick={() => navigate('/budget-calendar')}
+              size="lg"
             >
-              <CalendarDays className="w-4 h-4" />
+              <CalendarDays className="w-5 h-5" />
               Calendar View
             </Button>
             

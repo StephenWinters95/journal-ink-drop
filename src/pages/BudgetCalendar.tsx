@@ -54,7 +54,7 @@ const BudgetCalendar = () => {
     return (
       <div className="flex flex-col items-center">
         {dayData && (
-          <div className={`text-xs font-bold mb-1 ${
+          <div className={`text-[10px] font-medium mb-0.5 ${
             dayData.balance >= 0 ? 'text-green-600' : 'text-red-600'
           }`}>
             €{Math.abs(dayData.balance).toFixed(0)}

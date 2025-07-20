@@ -11,7 +11,9 @@ import { useBudget } from '@/contexts/BudgetContext';
 import type { BudgetTransaction } from "@/types/budget";
 
 const BudgetCalendar = () => {
+  console.log('BudgetCalendar component rendering');
   const navigate = useNavigate();
+  console.log('About to call useBudget hook');
   const { 
     transactions, 
     selectedDate, 
@@ -20,6 +22,7 @@ const BudgetCalendar = () => {
     deleteTransaction,
     budgetData: { dailyBalances }
   } = useBudget();
+  console.log('useBudget hook completed successfully');
   
   const [editingTransaction, setEditingTransaction] = useState<BudgetTransaction | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

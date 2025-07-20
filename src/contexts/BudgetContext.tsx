@@ -22,6 +22,7 @@ interface BudgetContextType {
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
+  console.log('BudgetProvider rendering');
   const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [bankAccount, setBankAccount] = useState<number>(0);
@@ -136,8 +137,11 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
 }
 
 export function useBudget() {
+  console.log('useBudget called, BudgetContext:', BudgetContext);
   const context = useContext(BudgetContext);
+  console.log('Context value:', context);
   if (context === undefined) {
+    console.error('useBudget must be used within a BudgetProvider - context is undefined');
     throw new Error('useBudget must be used within a BudgetProvider');
   }
   return context;

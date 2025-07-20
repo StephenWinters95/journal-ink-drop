@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DollarSign, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useBudget } from '@/contexts/BudgetContext';
@@ -70,7 +70,7 @@ const BudgetCalendar = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <span className="w-8 h-8 text-green-600 font-bold text-2xl flex items-center justify-center">€</span>
             <h1 className="text-3xl font-bold text-gray-800">Calendar View</h1>
           </div>
           

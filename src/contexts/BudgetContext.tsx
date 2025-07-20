@@ -67,8 +67,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   };
 
   const addTransactions = (newTransactions: BudgetTransaction[]) => {
-    setTransactions(prev => [...prev, ...newTransactions]);
-    toast.success(`Added ${newTransactions.length} transactions`);
+    // Clear previous transactions and replace with new ones
+    setTransactions(newTransactions);
+    toast.success(`Loaded ${newTransactions.length} transactions (previous data cleared)`);
   };
 
   return (

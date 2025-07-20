@@ -88,8 +88,14 @@ const TransactionTable = () => {
     }
   };
   
-  // Sort transactions
+  // Sort transactions with income first, then expenses, then by selected field
   const sortedTransactions = [...transactions].sort((a, b) => {
+    // First level: sort by type (income first)
+    if (a.type !== b.type) {
+      return a.type === 'income' ? -1 : 1;
+    }
+    
+    // Second level: sort by selected field within same type
     let comparison = 0;
     
     if (sortField === 'amount' || sortField === 'startDate') {
@@ -150,7 +156,7 @@ const TransactionTable = () => {
                 sortedTransactions.map((transaction) => (
                   <TableRow key={transaction.id} className="hover:bg-muted/30">
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors py-2 px-4" 
                       onClick={(e) => handleCellClick(transaction.id, 'title', e)}
                     >
                       {editingCell?.transactionId === transaction.id && editingCell?.field === 'title' ? (
@@ -165,7 +171,7 @@ const TransactionTable = () => {
                       )}
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors py-2 px-4" 
                       onClick={(e) => handleCellClick(transaction.id, 'type', e)}
                     >
                       {editingCell?.transactionId === transaction.id && editingCell?.field === 'type' ? (
@@ -186,7 +192,7 @@ const TransactionTable = () => {
                       )}
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors py-2 px-4" 
                       onClick={(e) => handleCellClick(transaction.id, 'frequency', e)}
                     >
                       {editingCell?.transactionId === transaction.id && editingCell?.field === 'frequency' ? (
@@ -207,7 +213,7 @@ const TransactionTable = () => {
                       )}
                     </TableCell>
                     <TableCell 
-                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors" 
+                      className="cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors py-2 px-4" 
                       onClick={(e) => handleCellClick(transaction.id, 'nextDueDate', e)}
                     >
                       {editingCell?.transactionId === transaction.id && editingCell?.field === 'nextDueDate' ? (
@@ -222,7 +228,7 @@ const TransactionTable = () => {
                       )}
                     </TableCell>
                     <TableCell 
-                      className={`cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
+                      className={`cursor-pointer hover:bg-muted/50 border border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors py-2 px-4 ${transaction.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}
                       onClick={(e) => handleCellClick(transaction.id, 'amount', e)}
                     >
                       {editingCell?.transactionId === transaction.id && editingCell?.field === 'amount' ? (
@@ -236,7 +242,7 @@ const TransactionTable = () => {
                         `€${transaction.amount.toFixed(2)}`
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2 px-4">
                       <Button
                         size="sm"
                         variant="destructive"

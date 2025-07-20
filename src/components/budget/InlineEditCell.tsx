@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
 
 interface InlineEditCellProps {
@@ -64,20 +65,25 @@ const InlineEditCell: React.FC<InlineEditCellProps> = ({
 
   if (type === 'select' && options) {
     return (
-      <select
-        ref={selectRef}
+      <Select
         value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        className={`w-full h-8 px-2 rounded border border-primary bg-background text-foreground ${className}`}
+        onValueChange={(value) => {
+          setEditValue(value);
+          onSave(value); // Auto-save on selection
+        }}
+        open={true} // Keep dropdown open immediately
       >
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className={`w-full h-8 ${className}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     );
   }
 

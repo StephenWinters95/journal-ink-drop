@@ -49,8 +49,8 @@ const BudgetDashboard = () => {
           <div className="lg:col-span-2">
             <DashboardCharts />
           </div>
-          <FinancialSummary />
           <CurrentBalance />
+          <FinancialSummary />
         </div>
         
         <div className="mb-8">

@@ -8,9 +8,6 @@ import { LayoutDashboard } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useBudget } from '@/contexts/BudgetContext';
-import DayDetails from "@/components/budget/DayDetails";
-import TransactionList from "@/components/budget/TransactionList";
-import EditTransactionForm from "@/components/budget/EditTransactionForm";
 import type { BudgetTransaction } from "@/types/budget";
 
 const BudgetCalendar = () => {
@@ -124,17 +121,15 @@ const BudgetCalendar = () => {
           </Card>
 
           <div className="space-y-6 lg:col-span-2">
-            <DayDetails 
-              selectedDate={selectedDate}
-              selectedDayData={selectedDayData}
-              transactionsCount={transactions.length}
-            />
-
-            <TransactionList
-              transactions={transactions}
-              onEditTransaction={handleEditTransaction}
-              onDeleteTransaction={deleteTransaction}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Day Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Selected: {format(selectedDate, 'MMMM d, yyyy')}</p>
+                <p>Transactions: {transactions.length}</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
@@ -143,13 +138,7 @@ const BudgetCalendar = () => {
             <DialogHeader>
               <DialogTitle>Edit Transaction</DialogTitle>
             </DialogHeader>
-            {editingTransaction && (
-              <EditTransactionForm
-                transaction={editingTransaction}
-                onSave={handleSaveTransaction}
-                onCancel={() => setIsDialogOpen(false)}
-              />
-            )}
+            <p>Edit form would go here</p>
           </DialogContent>
         </Dialog>
       </div>

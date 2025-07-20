@@ -2,7 +2,7 @@
 export interface BudgetTransaction {
   id: string;
   title: string;
-  frequency: 'Weekly' | 'Monthly' | 'Annual' | 'One-time';
+  frequency: 'Weekly' | 'Fortnightly' | 'Monthly' | 'Annual' | 'One-time';
   amount: number;
   type: 'income' | 'expense';
   startDate: Date;

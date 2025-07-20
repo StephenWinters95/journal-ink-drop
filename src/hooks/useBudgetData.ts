@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { addDays, addWeeks, addMonths, addYears, isSameDay, format } from "date-fns";
+import { calculateNextDueDate } from "@/utils/dateCalculations";
 import type { BudgetTransaction, BudgetItem, DayBalance } from "@/types/budget";
 
 export const useBudgetData = (transactions: BudgetTransaction[], startingBalance: number = 0) => {
@@ -12,7 +13,11 @@ export const useBudgetData = (transactions: BudgetTransaction[], startingBalance
     const endDate = addYears(new Date(), 1);
 
     transactions.forEach(transaction => {
-      let currentDate = new Date(transaction.startDate);
+      // Use nextDueDate if available, otherwise calculate it
+      let currentDate = transaction.nextDueDate 
+        ? new Date(transaction.nextDueDate)
+        : calculateNextDueDate(transaction.type, transaction.frequency, new Date(transaction.startDate));
+      
       let itemCount = 0;
       const maxItems = 100;
 
@@ -25,9 +30,13 @@ export const useBudgetData = (transactions: BudgetTransaction[], startingBalance
           transactionId: transaction.id
         });
 
+        // Calculate next occurrence based on frequency
         switch (transaction.frequency) {
           case 'Weekly':
             currentDate = addWeeks(currentDate, 1);
+            break;
+          case 'Fortnightly':
+            currentDate = addWeeks(currentDate, 2);
             break;
           case 'Monthly':
             currentDate = addMonths(currentDate, 1);
@@ -36,7 +45,7 @@ export const useBudgetData = (transactions: BudgetTransaction[], startingBalance
             currentDate = addYears(currentDate, 1);
             break;
           case 'One-time':
-            currentDate = addYears(currentDate, 2);
+            currentDate = addYears(currentDate, 2); // Break the loop
             break;
         }
         itemCount++;

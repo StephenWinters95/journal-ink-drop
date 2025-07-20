@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { DollarSign, CalendarDays } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import DashboardCharts from "@/components/budget/DashboardCharts";
 import FinancialSummary from "@/components/budget/FinancialSummary";
 import TransactionTable from "@/components/budget/TransactionTable";
@@ -21,7 +22,7 @@ const BudgetDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <span className="w-8 h-8 text-green-600 font-bold text-2xl flex items-center justify-center">€</span>
             <h1 className="text-3xl font-bold text-gray-800">Budget Dashboard</h1>
           </div>
           

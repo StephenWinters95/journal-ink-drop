@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -20,7 +19,7 @@ const Index = () => {
         <div className="flex justify-center gap-4">
           <Link to="/budget-dashboard">
             <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-3">
-              <DollarSign className="w-5 h-5 mr-2" />
+              <span className="w-5 h-5 mr-2 font-bold text-lg">€</span>
               Budget Dashboard
             </Button>
           </Link>

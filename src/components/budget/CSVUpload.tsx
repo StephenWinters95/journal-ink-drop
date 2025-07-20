@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
-import { startOfDay, addMonths, startOfMonth, addDays, getDay, nextFriday } from "date-fns";
+import { startOfDay } from "date-fns";
+import { calculateNextDueDate } from "@/utils/dateCalculations";
 import type { BudgetTransaction } from "@/types/budget";
 
 interface CSVUploadProps {
@@ -11,33 +11,6 @@ interface CSVUploadProps {
 }
 
 const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
-  
-  const calculateNextDueDate = (type: 'income' | 'expense', frequency: string, today: Date): Date => {
-    if (frequency === 'Monthly') {
-      if (type === 'income') {
-        // Income monthly: 1st of following month
-        return startOfMonth(addMonths(today, 1));
-      } else {
-        // Expense monthly: 1st of month, but if Sat/Sun then next Monday
-        const firstOfMonth = startOfMonth(addMonths(today, 1));
-        const dayOfWeek = getDay(firstOfMonth); // 0=Sunday, 6=Saturday
-        
-        if (dayOfWeek === 0) { // Sunday
-          return addDays(firstOfMonth, 1); // Next Monday
-        } else if (dayOfWeek === 6) { // Saturday
-          return addDays(firstOfMonth, 2); // Next Monday
-        } else {
-          return firstOfMonth; // Weekday, use as is
-        }
-      }
-    } else if (frequency === 'Weekly' && type === 'income') {
-      // Income weekly: next Friday from today
-      return nextFriday(today);
-    } else {
-      // For other cases (Annual, One-time, or expense weekly), use startDate
-      return today;
-    }
-  };
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;

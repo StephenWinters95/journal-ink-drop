@@ -7,6 +7,7 @@ import DashboardCharts from "@/components/budget/DashboardCharts";
 import FinancialSummary from "@/components/budget/FinancialSummary";
 import TransactionTable from "@/components/budget/TransactionTable";
 import CSVUpload from "@/components/budget/CSVUpload";
+import RecalculateDates from "@/components/budget/RecalculateDates";
 import { useBudget } from '@/contexts/BudgetContext';
 
 const BudgetDashboard = () => {
@@ -36,7 +37,10 @@ const BudgetDashboard = () => {
               Calendar View
             </Button>
             
-            <CSVUpload onTransactionsLoaded={handleTransactionsLoaded} />
+            <div className="flex items-center gap-2">
+              <CSVUpload onTransactionsLoaded={handleTransactionsLoaded} />
+              <RecalculateDates />
+            </div>
           </div>
         </div>
 

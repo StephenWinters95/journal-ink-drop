@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { toast } from "sonner";
 import { useBudgetData } from '@/hooks/useBudgetData';
@@ -12,6 +13,10 @@ interface BudgetContextType {
   deleteTransaction: (transactionId: string) => void;
   addTransactions: (transactions: BudgetTransaction[]) => void;
   budgetData: ReturnType<typeof useBudgetData>;
+  bankAccount: number;
+  savings: number;
+  updateBankAccount: (amount: number) => void;
+  updateSavings: (amount: number) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -19,7 +24,9 @@ const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<BudgetTransaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const budgetData = useBudgetData(transactions);
+  const [bankAccount, setBankAccount] = useState<number>(0);
+  const [savings, setSavings] = useState<number>(0);
+  const budgetData = useBudgetData(transactions, bankAccount + savings);
 
   // Load transactions from localStorage on mount
   React.useEffect(() => {
@@ -40,6 +47,20 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Load account balances from localStorage on mount
+  React.useEffect(() => {
+    try {
+      const savedBalances = localStorage.getItem('account_balances');
+      if (savedBalances) {
+        const parsed = JSON.parse(savedBalances);
+        setBankAccount(parsed.bankAccount || 0);
+        setSavings(parsed.savings || 0);
+      }
+    } catch (error) {
+      console.error('Failed to load account balances from localStorage:', error);
+    }
+  }, []);
+
   // Save transactions to localStorage when they change
   React.useEffect(() => {
     try {
@@ -48,6 +69,18 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       console.error('Failed to save transactions to localStorage:', error);
     }
   }, [transactions]);
+
+  // Save account balances to localStorage when they change
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('account_balances', JSON.stringify({
+        bankAccount,
+        savings
+      }));
+    } catch (error) {
+      console.error('Failed to save account balances to localStorage:', error);
+    }
+  }, [bankAccount, savings]);
 
   const addTransaction = (transaction: BudgetTransaction) => {
     setTransactions(prev => [...prev, transaction]);
@@ -72,6 +105,16 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     toast.success(`Loaded ${newTransactions.length} transactions (previous data cleared)`);
   };
 
+  const updateBankAccount = (amount: number) => {
+    setBankAccount(amount);
+    toast.success('Bank account balance updated');
+  };
+
+  const updateSavings = (amount: number) => {
+    setSavings(amount);
+    toast.success('Savings balance updated');
+  };
+
   return (
     <BudgetContext.Provider value={{
       transactions,
@@ -82,6 +125,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       deleteTransaction,
       addTransactions,
       budgetData,
+      bankAccount,
+      savings,
+      updateBankAccount,
+      updateSavings,
     }}>
       {children}
     </BudgetContext.Provider>

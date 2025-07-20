@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
 import DashboardCharts from "@/components/budget/DashboardCharts";
 import FinancialSummary from "@/components/budget/FinancialSummary";
+import CurrentBalance from "@/components/budget/CurrentBalance";
 import TransactionTable from "@/components/budget/TransactionTable";
 import CSVUpload from "@/components/budget/CSVUpload";
 import RecalculateDates from "@/components/budget/RecalculateDates";
@@ -44,9 +45,12 @@ const BudgetDashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <DashboardCharts />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <DashboardCharts />
+          </div>
           <FinancialSummary />
+          <CurrentBalance />
         </div>
         
         <div className="mb-8">

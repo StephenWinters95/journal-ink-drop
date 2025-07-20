@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { addDays, addWeeks, addMonths, addYears, isSameDay, format } from "date-fns";
 import type { BudgetTransaction, BudgetItem, DayBalance } from "@/types/budget";
 
-export const useBudgetData = (transactions: BudgetTransaction[]) => {
+export const useBudgetData = (transactions: BudgetTransaction[], startingBalance: number = 0) => {
   const [budgetData, setBudgetData] = useState<BudgetItem[]>([]);
   const [dailyBalances, setDailyBalances] = useState<Map<string, DayBalance>>(new Map());
 
@@ -52,10 +52,8 @@ export const useBudgetData = (transactions: BudgetTransaction[]) => {
   }, [transactions]);
 
   useEffect(() => {
-    if (budgetData.length === 0) return;
-
     const balances = new Map<string, DayBalance>();
-    let runningBalance = 0;
+    let runningBalance = startingBalance; // Start with the user's current balance
     
     const sortedData = [...budgetData].sort((a, b) => a.date.getTime() - b.date.getTime());
     const startDate = sortedData[0]?.date || new Date();
@@ -85,7 +83,7 @@ export const useBudgetData = (transactions: BudgetTransaction[]) => {
     }
     
     setDailyBalances(balances);
-  }, [budgetData]);
+  }, [budgetData, startingBalance]);
 
   return { budgetData, dailyBalances };
 };

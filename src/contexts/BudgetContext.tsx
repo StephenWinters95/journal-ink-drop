@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { toast } from "sonner";
 import { useBudgetData } from '@/hooks/useBudgetData';
@@ -27,7 +26,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [bankAccount, setBankAccount] = useState<number>(0);
   const [savings, setSavings] = useState<number>(0);
-  const budgetData = useBudgetData(transactions, bankAccount + savings);
+  // Use only bank account balance for budget calculations (exclude savings)
+  const budgetData = useBudgetData(transactions, bankAccount);
 
   // Load transactions from localStorage on mount
   React.useEffect(() => {

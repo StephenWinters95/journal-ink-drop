@@ -42,7 +42,8 @@ const BudgetCalendar = () => {
     setEditingTransaction(null);
   };
 
-  const currentBalance = bankAccount + savings;
+  // Use only bank account balance as current balance (excluding savings)
+  const currentBalance = bankAccount;
 
   // Custom day content to show balance above each day
   const DayContent = ({ date }: { date: Date }) => {

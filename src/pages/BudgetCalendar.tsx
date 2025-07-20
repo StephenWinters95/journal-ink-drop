@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { LayoutDashboard } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useBudget } from '@/contexts/BudgetContext';
+import ForwardTransactionView from '@/components/budget/ForwardTransactionView';
 import type { BudgetTransaction } from "@/types/budget";
 
 const BudgetCalendar = () => {
@@ -20,7 +22,9 @@ const BudgetCalendar = () => {
     setSelectedDate,
     updateTransaction,
     deleteTransaction,
-    budgetData: { dailyBalances }
+    budgetData: { budgetData, dailyBalances },
+    bankAccount,
+    savings
   } = useBudget();
   console.log('useBudget hook completed successfully');
   
@@ -38,12 +42,7 @@ const BudgetCalendar = () => {
     setEditingTransaction(null);
   };
 
-  const getSelectedDayData = () => {
-    const dateKey = format(selectedDate, 'yyyy-MM-dd');
-    return dailyBalances.get(dateKey);
-  };
-
-  const selectedDayData = getSelectedDayData();
+  const currentBalance = bankAccount + savings;
 
   // Custom day content to show balance above each day
   const DayContent = ({ date }: { date: Date }) => {
@@ -124,15 +123,12 @@ const BudgetCalendar = () => {
           </Card>
 
           <div className="space-y-6 lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Day Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Selected: {format(selectedDate, 'MMMM d, yyyy')}</p>
-                <p>Transactions: {transactions.length}</p>
-              </CardContent>
-            </Card>
+            <ForwardTransactionView
+              selectedDate={selectedDate}
+              budgetData={budgetData}
+              dailyBalances={dailyBalances}
+              currentBalance={currentBalance}
+            />
           </div>
         </div>
 

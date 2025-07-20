@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LayoutDashboard } from "lucide-react";
-import { format } from "date-fns";
+import { format, isBefore, isAfter, isToday } from "date-fns";
 import { toast } from "sonner";
 import { useBudget } from '@/contexts/BudgetContext';
 import ForwardTransactionView from '@/components/budget/ForwardTransactionView';
@@ -45,18 +45,43 @@ const BudgetCalendar = () => {
   // Use only bank account balance as current balance (excluding savings)
   const currentBalance = bankAccount;
 
+  // Calculate running balance for calendar display (aligned with ForwardTransactionView)
+  const calculateRunningBalance = (date: Date) => {
+    let runningBalance = currentBalance;
+    
+    // Get all transactions up to and including this date
+    const transactionsUpToDate = budgetData
+      .filter(item => !isAfter(item.date, date))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+    
+    // Apply each transaction to the running balance
+    transactionsUpToDate.forEach(transaction => {
+      if (transaction.type === 'income') {
+        runningBalance += transaction.amount;
+      } else {
+        runningBalance -= transaction.amount;
+      }
+    });
+    
+    return runningBalance;
+  };
+
   // Custom day content to show balance above each day
   const DayContent = ({ date }: { date: Date }) => {
+    const balance = calculateRunningBalance(date);
+    
+    // Only show balance for dates that have transactions or are today/future
     const dateKey = format(date, 'yyyy-MM-dd');
     const dayData = dailyBalances.get(dateKey);
+    const hasTransactions = dayData && dayData.transactions.length > 0;
     
     return (
       <div className="flex flex-col items-center">
-        {dayData && (
+        {(hasTransactions || !isBefore(date, new Date())) && (
           <div className={`text-[10px] font-medium mb-0.5 ${
-            dayData.balance >= 0 ? 'text-green-600' : 'text-red-600'
+            balance >= 0 ? 'text-green-600' : 'text-red-600'
           }`}>
-            €{Math.abs(dayData.balance).toFixed(0)}
+            €{Math.abs(balance).toFixed(0)}
           </div>
         )}
         <div>{date.getDate()}</div>
@@ -104,14 +129,12 @@ const BudgetCalendar = () => {
                     return dayData !== undefined && dayData.transactions.length > 0;
                   },
                   positive: (date) => {
-                    const dateKey = format(date, 'yyyy-MM-dd');
-                    const dayData = dailyBalances.get(dateKey);
-                    return dayData !== undefined && dayData.balance > 0;
+                    const balance = calculateRunningBalance(date);
+                    return balance > 0;
                   },
                   negative: (date) => {
-                    const dateKey = format(date, 'yyyy-MM-dd');
-                    const dayData = dailyBalances.get(dateKey);
-                    return dayData !== undefined && dayData.balance < 0;
+                    const balance = calculateRunningBalance(date);
+                    return balance < 0;
                   }
                 }}
                 modifiersStyles={{

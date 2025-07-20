@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar } from "lucide-react";
 import { format, isSameDay, isAfter, isToday, isBefore } from "date-fns";
 import type { BudgetItem, DayBalance } from "@/types/budget";
 
@@ -83,8 +83,7 @@ const ForwardTransactionView = ({
         </CardHeader>
         <CardContent>
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <DollarSign className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-sm text-gray-600">Opening Balance</p>
+            <p className="text-sm text-gray-600 mb-2">Opening Balance</p>
             <p className="text-xl font-bold text-blue-600">
               €{openingBalance.toFixed(2)}
             </p>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { useBudget } from '@/contexts/BudgetContext';
 
 const FinancialSummary = () => {
@@ -96,7 +96,7 @@ const FinancialSummary = () => {
           </div>
           
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <DollarSign className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+            <span className="w-6 h-6 mx-auto mb-2 text-blue-600 font-bold text-xl flex items-center justify-center">€</span>
             <p className="text-sm text-gray-600">Weekly Net</p>
             <p className={`text-lg font-bold ${weeklyNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               €{weeklyNet.toFixed(2)}

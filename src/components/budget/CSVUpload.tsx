@@ -28,6 +28,35 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
         const csv = e.target?.result as string;
         console.log('CSV content:', csv);
         
+        // Parse CSV properly handling quoted fields containing commas
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                // Handle escaped quotes
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          
+          result.push(current.trim());
+          return result;
+        };
+
         const lines = csv.split('\n').filter(line => line.trim() !== '');
         console.log('Total lines:', lines.length);
         
@@ -37,46 +66,62 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
         }
 
         const newTransactions: BudgetTransaction[] = [];
+        const skippedLines: { line: number; reason: string; content: string }[] = [];
         const today = startOfDay(new Date());
         
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
-          if (!line) continue;
-          
-          console.log(`Processing line ${i}:`, line);
-          
-          const parts = line.split(',').map(part => part.trim().replace(/^"|"$/g, ''));
-          console.log('Parts:', parts);
-          
-          if (parts.length < 3) {
-            console.warn(`Skipping line ${i}: insufficient data`);
+          if (!line) {
+            skippedLines.push({ line: i + 1, reason: 'Empty line', content: line });
             continue;
           }
           
-          const title = parts[0];
-          const frequency = parts[1];
-          const amountStr = parts[2];
+          console.log(`Processing line ${i + 1}:`, line);
+          
+          const parts = parseCSVLine(line);
+          console.log('Parsed parts:', parts);
+          
+          if (parts.length < 3) {
+            skippedLines.push({ line: i + 1, reason: 'Insufficient data (less than 3 columns)', content: line });
+            continue;
+          }
+          
+          const title = parts[0].trim();
+          const frequency = parts[1].trim();
+          const amountStr = parts[2].trim();
           
           // Skip title rows or empty frequency/amount
-          if (!frequency || !amountStr || amountStr === '' || 
-              frequency === '' || frequency === 'Frequency' ||
+          if (!frequency || frequency === 'Frequency' ||
               title.toLowerCase().includes('household') ||
               title.toLowerCase().includes('expenditure') ||
               title.toLowerCase().includes('introduction')) {
-            console.log(`Skipping title/header row: ${title}`);
+            skippedLines.push({ line: i + 1, reason: 'Header/title row detected', content: line });
             continue;
           }
           
-          // Parse amount
-          const amount = parseFloat(amountStr);
-          if (isNaN(amount) || amount === 0) {
-            console.warn(`Skipping line ${i}: invalid amount "${amountStr}"`);
+          // Parse amount (allow zero amounts)
+          const amount = parseFloat(amountStr.replace(/[£$€,]/g, ''));
+          if (isNaN(amount)) {
+            skippedLines.push({ line: i + 1, reason: `Invalid amount: "${amountStr}"`, content: line });
             continue;
           }
           
-          // Validate frequency
-          if (!['Weekly', 'Monthly', 'Annual', 'One-time'].includes(frequency)) {
-            console.warn(`Skipping line ${i}: invalid frequency "${frequency}"`);
+          // Improved frequency validation with common variations
+          const normalizedFrequency = frequency.toLowerCase();
+          let validFrequency: 'Weekly' | 'Fortnightly' | 'Monthly' | 'Annual' | 'One-time';
+          
+          if (normalizedFrequency.includes('week')) {
+            validFrequency = 'Weekly';
+          } else if (normalizedFrequency.includes('fortnight') || normalizedFrequency.includes('bi-week')) {
+            validFrequency = 'Fortnightly';
+          } else if (normalizedFrequency.includes('month')) {
+            validFrequency = 'Monthly';
+          } else if (normalizedFrequency.includes('annual') || normalizedFrequency.includes('year')) {
+            validFrequency = 'Annual';
+          } else if (normalizedFrequency.includes('one') || normalizedFrequency.includes('once')) {
+            validFrequency = 'One-time';
+          } else {
+            skippedLines.push({ line: i + 1, reason: `Invalid frequency: "${frequency}"`, content: line });
             continue;
           }
           
@@ -124,12 +169,12 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
             type 
           });
           
-          const nextDueDate = calculateNextDueDate(type, frequency, today);
+          const nextDueDate = calculateNextDueDate(type, validFrequency, today);
           
           newTransactions.push({
             id: `${Date.now()}-${i}`,
             title,
-            frequency: frequency as 'Weekly' | 'Monthly' | 'Annual' | 'One-time',
+            frequency: validFrequency,
             amount: finalAmount,
             type,
             startDate: today,
@@ -138,14 +183,26 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
         }
         
         console.log('Total transactions processed:', newTransactions.length);
+        console.log('Skipped lines:', skippedLines);
+        
+        // Enhanced feedback with detailed skipping information
+        if (skippedLines.length > 0) {
+          console.log('\nDetailed skip reasons:');
+          skippedLines.forEach(skip => {
+            console.log(`Line ${skip.line}: ${skip.reason}`);
+            console.log(`Content: "${skip.content}"`);
+          });
+          
+          toast.info(`Processed ${newTransactions.length} transactions, skipped ${skippedLines.length} lines. Check console for details.`);
+        }
         
         if (newTransactions.length === 0) {
-          toast.error('No valid transactions found in CSV file');
+          toast.error('No valid transactions found in CSV file. Check console for details on skipped lines.');
           return;
         }
         
         onTransactionsLoaded(newTransactions);
-        toast.success(`Successfully loaded ${newTransactions.length} transactions`);
+        toast.success(`Successfully loaded ${newTransactions.length} transactions${skippedLines.length > 0 ? ` (${skippedLines.length} lines skipped)` : ''}`);
         
       } catch (error) {
         console.error('Error parsing CSV:', error);

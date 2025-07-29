@@ -81,7 +81,27 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
           }
           
           // Determine type based on keywords
-          const isIncome = title.toLowerCase().includes('income') || 
+          // First check for items that should be expenses (overrides income keywords)
+          const isDefinitelyExpense = title.toLowerCase().includes('pocket money') ||
+                                    title.toLowerCase().includes('childrens') ||
+                                    title.toLowerCase().includes('children') ||
+                                    title.toLowerCase().includes('mortgage payment protection') ||
+                                    title.toLowerCase().includes('pension contribution') ||
+                                    title.toLowerCase().includes('repair and maintenance') ||
+                                    title.toLowerCase().includes('maintenance') ||
+                                    title.toLowerCase().includes('gifts') ||
+                                    title.toLowerCase().includes('voluntary contribution') ||
+                                    title.toLowerCase().includes('membership') ||
+                                    title.toLowerCase().includes('school fees') ||
+                                    title.toLowerCase().includes('college fees') ||
+                                    title.toLowerCase().includes('school uniform') ||
+                                    title.toLowerCase().includes('school books') ||
+                                    title.toLowerCase().includes('college books') ||
+                                    title.toLowerCase().includes('nct') ||
+                                    title.toLowerCase().includes('insurance');
+          
+          const isIncome = !isDefinitelyExpense && (
+                          title.toLowerCase().includes('income') || 
                           title.toLowerCase().includes('earnings') || 
                           title.toLowerCase().includes('salary') ||
                           title.toLowerCase().includes('wage') ||
@@ -90,10 +110,9 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
                           title.toLowerCase().includes('pension') ||
                           title.toLowerCase().includes('allowance') ||
                           title.toLowerCase().includes('grant') ||
-                          title.toLowerCase().includes('maintenance') ||
                           title.toLowerCase().includes('boarders') ||
                           title.toLowerCase().includes('lodgers') ||
-                          title.toLowerCase().includes('welfare');
+                          title.toLowerCase().includes('welfare'));
           
           const type = isIncome ? 'income' : 'expense';
           const finalAmount = Math.abs(amount);

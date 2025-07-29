@@ -99,10 +99,15 @@ const CSVUpload = ({ onTransactionsLoaded }: CSVUploadProps) => {
             continue;
           }
           
-          // Parse amount (allow zero amounts)
+          // Parse amount (skip zero amounts)
           const amount = parseFloat(amountStr.replace(/[£$€,]/g, ''));
           if (isNaN(amount)) {
             skippedLines.push({ line: i + 1, reason: `Invalid amount: "${amountStr}"`, content: line });
+            continue;
+          }
+          
+          if (amount === 0) {
+            skippedLines.push({ line: i + 1, reason: `Zero amount skipped: "${amountStr}"`, content: line });
             continue;
           }
           
